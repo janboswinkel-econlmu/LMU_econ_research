@@ -7,6 +7,8 @@ Created on Thu Apr  3 10:22:50 2025
 @author: jan.boswinkel
 """
 
+print "this is a new version"
+
 #region libraries
 import os, pickle, random, math, json, base64, ast
 import numpy as np
