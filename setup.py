@@ -6,10 +6,19 @@ setup(
     description="A python package for LMU Econ Research on historical documents",
     packages=find_packages(),
     install_requires=[
+        "pytorch",
+        "torchvision",
+        "torchaudio",
+        "cpuonly",
         "numpy",
         "pandas",
         "Pillow",
         "openai",
-        "requests"
+        "requests",
+        "opencv-python",
+        "roboflow",
+        "ultralytics",
+        "matplotlib"
     ],
+    python_requires='>=3.6',
 )
