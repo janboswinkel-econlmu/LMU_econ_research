@@ -7,8 +7,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "pytorch",
-        "torchvision",
-        "torchaudio",
         "numpy",
         "pandas",
         "Pillow",
