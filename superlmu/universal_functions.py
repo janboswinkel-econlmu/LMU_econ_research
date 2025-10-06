@@ -14,6 +14,7 @@ import pandas as pd
 from PIL import Image as PILImage
 from PIL import ImageDraw
 from openai import OpenAI
+import inspect
 
 #endregion
 ########################################################################################################################
@@ -202,8 +203,10 @@ def numpy_merge(a, b, col_ids, method, delete_key=False):
     return merged
 
 #define column index for each column name in a list
-def define_col_dic(col_names):
-    return {name: i for i, name in enumerate(col_names)}
+def define_col_idx(prefix, col_names):
+    frame = inspect.currentframe().f_back
+    for i, name in enumerate(col_names):
+        frame.f_globals[f'{prefix}_{name}'] = i
         
 #print random items from list or random rows from array
 def random_items(data, n_elements):
