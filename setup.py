@@ -9,7 +9,6 @@ setup(
         "pytorch",
         "torchvision",
         "torchaudio",
-        "cpuonly",
         "numpy",
         "pandas",
         "Pillow",
