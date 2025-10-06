@@ -6,7 +6,7 @@ import base64
 import numpy as np
 import ast
 from openai import OpenAI
-from universal_functions import get_all_filenames, save_file, open_file, add_col
+from .universal_functions import get_all_filenames, save_file, open_file, add_col
 import pandas as pd
 
 #endregion
