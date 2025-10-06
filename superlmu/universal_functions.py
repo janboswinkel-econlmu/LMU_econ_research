@@ -203,7 +203,7 @@ def numpy_merge(a, b, col_ids, method, delete_key=False):
 
 #define column index for each column name in a list
 def define_col_dic(col_names):
-    return {f"{name}": i for i, name in enumerate(col_names)}
+    return {name: i for i, name in enumerate(col_names)}
         
 #print random items from list or random rows from array
 def random_items(data, n_elements):
