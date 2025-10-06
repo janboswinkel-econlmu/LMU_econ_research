@@ -434,10 +434,10 @@ def extract_json_custom(result_array, output_format):
 
 #region instantaneous calls
 
-def ask_image(image_path, API_key, system_prompt, prompt, temp, mod, detail_image, img_type):
+def ask_image(image_path, system_prompt, prompt, temp, mod, detail_image, img_type):
     with open(image_path, 'rb') as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-    client = OpenAI(api_key=API_key)
+    client = OpenAI()
     image_type = f"image/{img_type}" 
     question1 = client.chat.completions.create(
         temperature=temp,
@@ -456,12 +456,12 @@ def ask_image(image_path, API_key, system_prompt, prompt, temp, mod, detail_imag
     response = question1.choices[0].message.content
     return response
 
-def ask_pdf(source, API_key, system_prompt, prompt, temp, mod):
+def ask_pdf(source, system_prompt, prompt, temp, mod):
     with open(source, "rb") as f:
         data = f.read()
     encoded_pdf = base64.b64encode(data).decode("utf-8")
     filename=source.split('\\')[-1] #get filename from path
-    client = OpenAI(api_key=API_key)
+    client = OpenAI()
     question1 = client.chat.completions.create(
         temperature=temp,
         model=mod,
@@ -483,13 +483,13 @@ def ask_pdf(source, API_key, system_prompt, prompt, temp, mod):
     response = question1.choices[0].message.content
     return response
 
-def ask_multi_image(sources, API_key, system_prompt, prompt, temp, mod):
+def ask_multi_image(sources, system_prompt, prompt, temp, mod):
     img_type, encoded_images="image/jpeg",[]
     for source in sources:
         with open(source, 'rb') as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
         encoded_images.append(encoded_image)
-    client = OpenAI(api_key=API_key)
+    client = OpenAI()
     messages_list=[{"role": "system", "content": system_prompt}]
     for encoded_image in encoded_images:
         messages_list.append({
@@ -503,8 +503,8 @@ def ask_multi_image(sources, API_key, system_prompt, prompt, temp, mod):
     response = question1.choices[0].message.content
     return response
 
-def ask_prompt (API_key, system_prompt, prompt, temp, mod): #response=
-    client = OpenAI(api_key=API_key)
+def ask_prompt (system_prompt, prompt, temp, mod): #response=
+    client = OpenAI()
     question2 = client.chat.completions.create(
         temperature=temp,
         model=mod,
@@ -525,8 +525,8 @@ def ask_prompt (API_key, system_prompt, prompt, temp, mod): #response=
     response2 = question2.choices[0].message.content
     return response2
 
-def ask_prompt_reasoning (API_key, system_prompt, prompt, effort, mod): 
-    client = OpenAI(api_key=API_key)
+def ask_prompt_reasoning (system_prompt, prompt, effort, mod): 
+    client = OpenAI()
     response = client.responses.create(
         model=mod,
         input=[
@@ -538,8 +538,5 @@ def ask_prompt_reasoning (API_key, system_prompt, prompt, effort, mod):
         }
     )
     return response.output_text
-
-
-
 #endregion
 ########################################################################################################################
