@@ -202,7 +202,7 @@ def numpy_merge(a, b, col_ids, method, delete_key=False):
     return merged
 
 #define column index for each column name in a list
-def define_col_idx(prefix, col_names):
+def define_col_dic(col_names):
     return {f"{name}": i for i, name in enumerate(col_names)}
         
 #print random items from list or random rows from array
