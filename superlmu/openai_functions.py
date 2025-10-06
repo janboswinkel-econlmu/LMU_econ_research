@@ -175,7 +175,7 @@ def submit_json_file_openai(client, batch_file):
     )
     return(batch_job)
 
-def submit_batch_job(path_to_openai_logs, gpt_key, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
+def submit_batch_job(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
     if file_type=='text':
         if mod in ['gpt-5', "gpt-5-mini", "gpt-5-nano"]:
             make_json_format_reasoning(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
@@ -189,7 +189,7 @@ def submit_batch_job(path_to_openai_logs, gpt_key, prompt_array, system_prompt, 
         make_json_format_image(path_to_openai_logs, prompt_array, system_prompt, temp, mod, image_detail, name_batch)
     else:
         raise ValueError("file_type must be 'text', 'pdf', or 'image'")
-    client = OpenAI(api_key=gpt_key)
+    client = OpenAI()
     batch_file = create_json_file_openai(path_to_openai_logs, client, name_batch)
     batch_job = submit_json_file_openai(client, batch_file)
     return(batch_job.id)
@@ -231,8 +231,8 @@ def read_results(path_to_openai_logs, batch_job_id):
         rows=np.vstack((rows, row))
     return(rows) 
 
-def retrieve_batch_job(path_to_openai_logs, gpt_key, batch_job_id):
-    client = OpenAI(api_key=gpt_key)
+def retrieve_batch_job(path_to_openai_logs, batch_job_id):
+    client = OpenAI()
     retrieve_and_save_data(path_to_openai_logs, client, batch_job_id)
     results=read_results(path_to_openai_logs, batch_job_id)
     return(results)
@@ -308,7 +308,7 @@ def create_subfolders(base_path):
 
 #region functions to submit and extract requests
 
-def submit_requests(path_to_openai_logs, gpt_key, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
+def submit_requests(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
     
     #ensures path_to_openai_logs exists and has required subfolders (find_batch_ids, complete_jobs, deletable)
     create_subfolders(path_to_openai_logs)
@@ -330,20 +330,20 @@ def submit_requests(path_to_openai_logs, gpt_key, prompt_array, system_prompt, t
     #submit each request separately and store batch_ids   
     batch_job_ids=[]
     for request in requests:
-        batch_job_id= submit_batch_job(path_to_openai_logs, gpt_key, request, system_prompt, temp, mod, name_batch, file_type, image_detail)
+        batch_job_id= submit_batch_job(path_to_openai_logs, request, system_prompt, temp, mod, name_batch, file_type, image_detail)
         batch_job_ids.append(batch_job_id)
     
     #save batch_job_ids
     save_file(batch_job_ids, f'{path_to_openai_logs}\\find_batch_ids', name_batch)
 
-def retrieve_requests(path_to_openai_logs, gpt_key, name_batch, already_saved=False):
+def retrieve_requests(path_to_openai_logs, name_batch, already_saved=False):
     batch_job_ids=open_file(f'{path_to_openai_logs}\\find_batch_ids', name_batch)
     all_results=[]
     for batch_job_id in batch_job_ids:
         if already_saved:
             results = retrieve_saved_batch_job(path_to_openai_logs, batch_job_id)
         else:
-            results = retrieve_batch_job(path_to_openai_logs, gpt_key, batch_job_id)
+            results = retrieve_batch_job(path_to_openai_logs, batch_job_id)
         all_results.append(results)
     return np.vstack(all_results)
 #endregion
