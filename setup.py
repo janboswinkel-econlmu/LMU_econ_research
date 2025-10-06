@@ -6,7 +6,6 @@ setup(
     description="A python package for LMU Econ Research on historical documents",
     packages=find_packages(),
     install_requires=[
-        "pytorch",
         "numpy",
         "pandas",
         "Pillow",
