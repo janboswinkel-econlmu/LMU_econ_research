@@ -245,13 +245,6 @@ def retrieve_saved_batch_job(path_to_openai_logs, batch_job_id):
     results=read_results(path_to_openai_logs, batch_job_id)
     return results
 
-def retrieve_saved_requests(name_batch):
-    batch_job_ids=open_file(f'{core_path}\\Objects\\openai_batch_history\\find_batch_ids', name_batch)
-    all_results=[]
-    for batch_job_id in batch_job_ids:
-        results= retrieve_saved_batch_job(batch_job_id)
-        all_results.append(results)
-    return np.vstack(all_results)
 #endregion
 ########################################################################################################################
 
