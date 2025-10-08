@@ -217,7 +217,7 @@ def retrieve_and_save_data(path_to_openai_logs, client, batch_job_id):
         file.write(result) #convert into json file
 
 def read_results(path_to_openai_logs, batch_job_id):
-    result_file_name = f'{path_to_openai_logs}\\{batch_job_id}.jsonl'
+    result_file_name = f'{path_to_openai_logs}\\complete_jobs\\{batch_job_id}.jsonl'
     results = []
     with open(result_file_name, 'r') as file:
         for line in file:
