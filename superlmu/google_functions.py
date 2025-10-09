@@ -14,7 +14,7 @@ def google_ocr(image_path):
     # Securely fetch the API key from environment variables
     api_key = os.environ.get("GOOGLE_API_KEY")
     if not api_key:
-        raise ValueError("GCP_API_KEY environment variable must be defined.")
+        raise ValueError("GOOGLE_API_KEY environment variable must be defined.")
 
     # Construct the Vision API endpoint URL
     vision_api_url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
