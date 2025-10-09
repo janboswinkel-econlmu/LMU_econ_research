@@ -393,30 +393,32 @@ def extract_json_custom(result_array, output_format):
     """   
     # new_array=result_array[:,0].reshape(-1,1)
     # new_array = np.hstack((new_array, np.full((new_array.shape[0], 1), np.nan)))
+    last_col=result_array.shape[1]-1
     new_array=add_col(result_array, np.nan, 1)
     rows=[]
     errors, emptys=[],[]
     for i in range(len(new_array)):
         id=new_array[i,0]
-        json_string = new_array[i, 1]
+        json_string = new_array[i, last_col]
         try:
             json_data = json.loads(json_string)
         except:
             errors.append(i)
         values = []
         if len(json_data)==0 and output_format=='long':
-            row=np.array([id, json_string, np.nan],dtype=object).reshape(-1,3)
+            row=new_array[i,:]
             rows.append(row)
             emptys.append(i)
             continue
         for _, value in json_data.items():
             if output_format=='long':
-                row=np.array([id, json_string, value],dtype=object).reshape(-1,3)
+                row=new_array[i,:]
+                row[-1]=value
                 rows.append(row)
             if output_format=='list':
                 values.append(value)
         if output_format=='list':
-            new_array[i,3]=values
+            new_array[i,-1]=values
     print(f'Number of rows where json could not be parsed: {len(errors)} / {len(new_array)} and number of empty jsons: {len(emptys)}')
     if output_format=='long':
         return(np.vstack(rows))
