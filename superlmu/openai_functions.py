@@ -405,7 +405,7 @@ def extract_json_custom(result_array, output_format):
         except:
             errors.append(i)
         values = []
-        if len(json_data)==0 and output_format=='long':
+        if len(json_data)==0:
             row=new_array[i,:]
             rows.append(row)
             emptys.append(i)
