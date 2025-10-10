@@ -298,27 +298,28 @@ def convert_cols_to_type(array, cols, ctype):
     return array
 
 #split dataset into chunks based on unique values in a specific column
-def split_data_into_chunks(data, col, return_index=False):
-    data=data[np.argsort(data[:, col]),:]  #sort data by column to ensure correct order
-    _, indices=np.unique(data[:, col], return_index=True)
-    indices=indices[np.argsort(indices)]  #sort indices to ensure correct order
+def split_data_into_chunks(data, col):
+    """
+    Splits data into chunks based on unique values in a specified column.
+    """
+    na_idx=np.where(pd.isna(data[:, col]))[0]
+    non_na_idx=np.setdiff1d(np.arange(len(data)), na_idx)
+    na_chunk=data[na_idx, :]
+    print(f"Number of rows with NA in column {col}: {len(na_idx)}, a separate chunk was made with these values")
+    
+    non_nan_data=data[non_na_idx, :]
+    non_nan_data=non_nan_data[np.argsort(non_nan_data[:, col]),:]  #sort non_nan_data by column to ensure correct order
+    _, indices=np.unique(non_nan_data[:, col], return_index=True)
     all_chunks, pre_idx = [], 0
     for z in range(1,len(indices)):
         idx = indices[z]
-        mini_data = data[pre_idx:idx, :]
-        if return_index:
-            mini_data_idx=np.arange(pre_idx, idx).tolist()  #create index for mini_data
-            all_chunks.append((mini_data_idx, mini_data))
-        else:
-            all_chunks.append(mini_data)
+        mini_data = non_nan_data[pre_idx:idx, :]
+        all_chunks.append(mini_data)
         pre_idx = idx
     #add last chunk
-    mini_data = data[pre_idx:, :]
-    if return_index:
-        mini_data_idx=np.arange(pre_idx, data.shape[0]).tolist()
-        all_chunks.append((mini_data_idx, mini_data))
-    else:
-        all_chunks.append(mini_data)
+    mini_data = non_nan_data[pre_idx:, :]
+    all_chunks.append(mini_data)
+    all_chunks.append(na_chunk)
     return all_chunks
 
 
