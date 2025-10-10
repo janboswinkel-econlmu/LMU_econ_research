@@ -319,7 +319,8 @@ def split_data_into_chunks(data, col):
     #add last chunk
     mini_data = non_nan_data[pre_idx:, :]
     all_chunks.append(mini_data)
-    all_chunks.append(na_chunk)
+    if len(na_idx)>0:
+        all_chunks.append(na_chunk)
     return all_chunks
 
 
