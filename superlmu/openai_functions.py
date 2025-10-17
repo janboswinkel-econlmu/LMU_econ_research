@@ -393,6 +393,8 @@ def extract_json_custom(result_array, output_format):
     """   
     # new_array=result_array[:,0].reshape(-1,1)
     # new_array = np.hstack((new_array, np.full((new_array.shape[0], 1), np.nan)))
+    if output_format not in ['list', 'long']:
+        raise ValueError("output_format must be 'list' or 'long'")
     last_col=result_array.shape[1]-1
     new_array=add_col(result_array, np.nan, 1)
     rows=[]
