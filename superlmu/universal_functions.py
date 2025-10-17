@@ -357,6 +357,57 @@ def use_dic_update(master_dic, correctiondata, col):
         correctiondata[indeces, col]=key
     return(correctiondata)
 
+
+def fill_in_linearly(array, for_tails='linear'):
+    """
+    Fill in NaN values in a 1D array using linear or constant imputation.
+    Args:
+        array: 1D numpy array with NaN values
+        for_tails: 'linear' for linear interpolation, 'constant' for constant value imputation
+    Returns:
+        1D numpy array with NaN values filled in
+    """
+    if for_tails not in ['linear', 'constant']:
+        raise ValueError("for_tails must be either 'linear' or 'constant'")
+
+    # Find indices of valid elements
+    v = np.where(~np.isnan(array))[0]
+    x = array[v]
+
+    # Compute step/growths between values
+    steps = np.diff(x) / np.diff(v)
+    growth_middle = np.repeat(steps, np.diff(v))
+
+    # Impute NaNs between existing values (linear interpolation)
+    result = array.copy()
+    for i in range(len(v)-1):
+        start, end = v[i], v[i+1]
+        for j in range(1, end-start):
+            result[start+j] = array[start] + growth_middle[start+j-1]
+
+    # For NaNs before the first value
+    if for_tails == 'linear':
+        if v[0]>0:
+            first_growth = steps[0]
+            for i in range(v[0]-1, -1, -1):
+                result[i] = result[i+1] - first_growth
+    elif for_tails == 'constant':
+        if v[0]>0:
+            for i in range(0, v[0]):
+                result[i] = result[v[0]]
+
+    # For NaNs after the last value
+    if for_tails == 'linear':
+        if v[-1]<len(array)-1:
+            last_growth = steps[-1]
+            for i in range(v[-1]+1, len(array)):
+                result[i] = result[i-1] + last_growth
+    elif for_tails == 'constant':
+        if v[-1]<len(array)-1:
+            for i in range(v[-1]+1, len(array)):
+                result[i] = result[v[-1]]
+    return result
+
 #endregion
 ########################################################################################################################
 
