@@ -239,7 +239,7 @@ def retrieve_batch_job(path_to_openai_logs, batch_job_id):
 
 def retrieve_saved_batch_job(path_to_openai_logs, batch_job_id):
     results = []
-    with open(f'{path_to_openai_logs}\\{batch_job_id}.jsonl', 'r', encoding='utf-8') as f:
+    with open(f'{path_to_openai_logs}\\complete_jobs\\{batch_job_id}.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             results.append(json.loads(line))
     results=read_results(path_to_openai_logs, batch_job_id)
