@@ -389,14 +389,14 @@ def extract_json_custom(result_array, output_format):
     Extracts all the values from every key in the JSON strings stored in the second column of a 2D array. Returns every key as a separate row or as a list in a list of lists.
     
     Returns:
-        numpy.ndarray: A new 2D array with the first column as IDs and additional columns for each extracted variable.
+        numpy.ndarray: A new 2D array with the same columns as input but an additional column for keys and another for values within those keys.
     """   
     # new_array=result_array[:,0].reshape(-1,1)
     # new_array = np.hstack((new_array, np.full((new_array.shape[0], 1), np.nan)))
     if output_format not in ['list', 'long']:
         raise ValueError("output_format must be 'list' or 'long'")
     last_col=result_array.shape[1]-1
-    new_array=add_col(result_array, np.nan, 1)
+    new_array=add_col(result_array, np.nan, 2)
     rows=[]
     errors, emptys=[],[]
     for i in range(len(new_array)):
@@ -406,20 +406,23 @@ def extract_json_custom(result_array, output_format):
             json_data = json.loads(json_string)
         except:
             errors.append(i)
-        values = []
+        keys, values = [],[]
         if len(json_data)==0:
             row=new_array[i,:]
             rows.append(row)
             emptys.append(i)
             continue
-        for _, value in json_data.items():
+        for key, value in json_data.items():
             if output_format=='long':
-                row=new_array[i,:]
+                row=new_array[i,:].copy()
+                row[-2]=key
                 row[-1]=value
                 rows.append(row)
             if output_format=='list':
+                keys.append(key)
                 values.append(value)
         if output_format=='list':
+            new_array[i,-2]=keys
             new_array[i,-1]=values
     print(f'Number of rows where json could not be parsed: {len(errors)} / {len(new_array)} and number of empty jsons: {len(emptys)}')
     if output_format=='long':
