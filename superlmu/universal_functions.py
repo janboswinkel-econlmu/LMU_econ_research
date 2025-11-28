@@ -106,6 +106,8 @@ def show_img(path):
 def get_all_filenames(path, format=None, crop=False):
     if format is None:
         return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    elif format=='folder':
+        return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
     elif crop:
         return [f.split('.')[0] for f in os.listdir(path) if f.endswith(format) and os.path.isfile(os.path.join(path, f))]
     else:
