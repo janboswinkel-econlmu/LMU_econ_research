@@ -15,6 +15,7 @@ from PIL import Image as PILImage
 from PIL import ImageDraw
 from openai import OpenAI
 import inspect
+import ast
 
 #endregion
 ########################################################################################################################
@@ -209,7 +210,14 @@ def define_col_idx(prefix, col_names):
     frame = inspect.currentframe().f_back
     for i, name in enumerate(col_names):
         frame.f_globals[f'{prefix}_{name}'] = i
-        
+
+#open .txt file where variable order is defined
+def open_var_list(file_path, var_list_name):
+    path = f'{file_path}\\{var_list_name}.txt'
+    with open(path, 'r') as f:
+        content = f.read()
+    return list(ast.literal_eval(content))
+    
 #print random items from list or random rows from array
 def random_items(data, n_elements):
     data=np.array(data)
