@@ -15,7 +15,7 @@ setup(
         "roboflow",
         "ultralytics",
         "matplotlib",
-        "ast
+        "ast"
     ],
     python_requires='>=3.6',
 )
