@@ -14,8 +14,7 @@ setup(
         "opencv-python",
         "roboflow",
         "ultralytics",
-        "matplotlib",
-        "ast"
+        "matplotlib"
     ],
     python_requires='>=3.6',
 )
