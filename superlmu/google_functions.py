@@ -1,6 +1,5 @@
 #region libraries
-import requests
-import os
+import os, base64, requests, numpy as np
 
 #endregion
 ########################################################################################################################
