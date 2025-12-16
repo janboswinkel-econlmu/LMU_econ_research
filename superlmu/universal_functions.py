@@ -17,6 +17,10 @@ from openai import OpenAI
 import inspect
 import ast
 
+from pypdf import PdfReader
+from pdf2image import convert_from_path
+
+
 #endregion
 ########################################################################################################################
 
