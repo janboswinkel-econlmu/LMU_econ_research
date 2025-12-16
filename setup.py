@@ -14,7 +14,9 @@ setup(
         "opencv-python",
         "roboflow",
         "ultralytics",
-        "matplotlib"
+        "matplotlib",
+         "pypdf",
+        "pdf2image"
     ],
     python_requires='>=3.6',
 )
