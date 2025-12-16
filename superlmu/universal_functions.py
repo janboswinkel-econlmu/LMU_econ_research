@@ -432,6 +432,25 @@ def draw_boxes(path, boxes):
         bbox=tuple(map(float, box))
         draw.rectangle(bbox, outline='blue', width=2)
     image.show()
+
+def reading_pdf(pdf_path, dest_path, path_poppler, pdfname, resolution, range_page=15):
+    origin_path=f'{pdf_path}\\{pdfname}'
+    clean_bookname=pdfname.split('.')[0]
+    clean_bookname=clean_bookname.replace('_dunrefbook', '')
+    dest_path = f'{dest_path}\\{clean_bookname}'
+    os.makedirs(dest_path, exist_ok=True)
+    reader = PdfReader(origin_path)
+    num_pages = len(reader.pages)
+    z, last_page=0,0
+    while last_page==0:
+        rangepage=[z,z+range_page]
+        if rangepage[1]>=num_pages:
+            rangepage[1]=num_pages
+            last_page=1
+        images = convert_from_path(origin_path, poppler_path=path_poppler, first_page=rangepage[0], last_page=rangepage[1])
+        for i, image in enumerate(images):
+            image.save(f'{dest_path}\\{z+i+1}.png', 'PNG', dpi=(resolution, resolution))
+        z=rangepage[1]
     
 #endregion
 ########################################################################################################################
