@@ -440,7 +440,6 @@ def draw_boxes(path, boxes):
 def reading_pdf(pdf_path, dest_path, path_poppler, pdfname, resolution, range_page=15):
     origin_path=f'{pdf_path}\\{pdfname}'
     clean_bookname=pdfname.split('.')[0]
-    clean_bookname=clean_bookname.replace('_dunrefbook', '')
     dest_path = f'{dest_path}\\{clean_bookname}'
     os.makedirs(dest_path, exist_ok=True)
     reader = PdfReader(origin_path)
