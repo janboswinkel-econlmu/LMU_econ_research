@@ -25,7 +25,7 @@ def google_ocr(image, format):
         with open(image, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode()
     elif format=='encoded':
-        encoded image= image.copy()
+        encoded_image= image.copy()
     else:
         print("format must be 'path' or 'encoded'")
 
