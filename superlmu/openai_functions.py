@@ -258,7 +258,7 @@ def encode_image_for_json(image_path, type_img):
 def calculate_size(image_path, system_prompt, prompt): #calculate size in mb
     if image_path is None:
         return len(prompt.encode('utf-8')) / (1024 * 1024) + len(system_prompt.encode('utf-8')) / (1024 * 1024)
-    load_size = os.path.getsize(image_path)/(1024*1024)+len(prompt.encode('utf-8')) / (1024 * 1024)+ len(system_prompt.encode('utf-8')) / (1024 * 1024)
+    load_size = os.path.getsize(image_path)*1.5/(1024*1024)+len(prompt.encode('utf-8')) / (1024 * 1024)+ len(system_prompt.encode('utf-8')) / (1024 * 1024) #1.5 factor for base64 overhead
     return load_size
 
 #split into either maximum number of requests or maximum size (requires last column with load size)
