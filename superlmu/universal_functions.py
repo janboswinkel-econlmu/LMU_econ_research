@@ -110,13 +110,13 @@ def show_img(path):
 #Baby function: get a given path name to a folder and return list of all the filenames contained in folder
 def get_all_filenames(path, format=None, crop=False):
     if format is None:
-        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f != 'Thumbs.db']
     elif format=='folder':
-        return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+        return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f)) and f != 'Thumbs.db']
     elif crop:
-        return [f.split('.')[0] for f in os.listdir(path) if f.endswith(format) and os.path.isfile(os.path.join(path, f))]
+        return [f.split('.')[0] for f in os.listdir(path) if f.endswith(format) and os.path.isfile(os.path.join(path, f)) and f != 'Thumbs.db']
     else:
-        return [f for f in os.listdir(path) if f.endswith(format) and os.path.isfile(os.path.join(path, f))]
+        return [f for f in os.listdir(path) if f.endswith(format) and os.path.isfile(os.path.join(path, f)) and f != 'Thumbs.db']
 
 def open_file (path, filename):
     with open(f'{path}\\{filename}.pkl', 'rb') as file:
