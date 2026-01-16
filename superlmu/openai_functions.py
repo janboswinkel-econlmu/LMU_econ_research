@@ -256,10 +256,17 @@ def encode_image_for_json(image_path, type_img):
     return f"data:image/{type_img};base64,{encoded_image}"
 
 def calculate_size(image_path, system_prompt, prompt): #calculate size in mb
-    if image_path is None:
-        return len(prompt.encode('utf-8')) / (1024 * 1024) + len(system_prompt.encode('utf-8')) / (1024 * 1024)
-    load_size = os.path.getsize(image_path)*1.5/(1024*1024)+len(prompt.encode('utf-8')) / (1024 * 1024)+ len(system_prompt.encode('utf-8')) / (1024 * 1024) #1.5 factor for base64 overhead
-    return load_size
+    # Base64 overhead (1.33x) + JSON structure overhead (~0.05x)
+    ENCODING_FACTOR = 1.4 
+    # Text overhead
+    prompt_bytes = len(prompt.encode('utf-8'))
+    system_bytes = len(system_prompt.encode('utf-8'))
+    if image_path and os.path.exists(image_path):
+        image_bytes = os.path.getsize(image_path) * ENCODING_FACTOR
+    else:
+        image_bytes = 0
+    total_mb = (image_bytes + prompt_bytes + system_bytes) / (1024 * 1024)
+    return total_mb
 
 #split into either maximum number of requests or maximum size (requires last column with load size)
 def split_into_requests(prompt_array, max_size, max_requests, single_max_size, image=True): #set max size to 150 in MB and requests to 50000
