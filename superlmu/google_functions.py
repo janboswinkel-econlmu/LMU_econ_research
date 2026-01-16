@@ -6,9 +6,10 @@ import os, base64, requests, numpy as np
 
 #region google
 
-def google_ocr(image_path):
+def google_ocr(image, format):
     """Performs Optical Character Recognition (OCR) on an image by invoking the Vertex AI REST API.
         Returns array with columns: index, detected_word, x1, y1, x2, y2
+        Format can be "path" or "encoded"
     """
 
     # Securely fetch the API key from environment variables
@@ -20,8 +21,13 @@ def google_ocr(image_path):
     vision_api_url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
 
     # Read and encode the local image
-    with open(image_path, "rb") as image_file:
-        encoded_image = base64.b64encode(image_file.read()).decode()
+    if format=='path':
+        with open(image, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode()
+    elif format=='encoded':
+        encoded image= image.copy()
+    else:
+        print("format must be 'path' or 'encoded'")
 
     # Define the request payload for text detection
     request_payload = {
