@@ -510,12 +510,22 @@ def ask_multi_image(sources, system_prompt, prompt, temp, mod):
     response = question1.choices[0].message.content
     return response
 
-def ask_prompt (system_prompt, prompt, temp, mod): #response=
+def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
     client = OpenAI()
+    if json_schema is None:
+        response_format_entry={"type": "json_object"}
+    else:
+        response_format_entry={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "schema_provided",
+                "schema": json_schema.model_json_schema(),
+                "strict": True
+            }}
     question2 = client.chat.completions.create(
         temperature=temp,
         model=mod,
-        response_format={ "type": "json_object" },
+        response_format=response_format_entry,
         messages=[
                 {
                     "role": "system",
