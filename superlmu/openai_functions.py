@@ -510,6 +510,7 @@ def ask_multi_image(sources, system_prompt, prompt, temp, mod):
     response = question1.choices[0].message.content
     return response
 
+
 def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
     client = OpenAI()
     if json_schema is None:
@@ -522,9 +523,35 @@ def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
                 "schema": json_schema.model_json_schema(),
                 "strict": True
             }}
+        
+    openai_reasoning_models = [
+    # Current Flagship Models (Unified Reasoning)
+    "gpt-5.4-pro",     # Released March 2026: Highest reasoning depth (xhigh effort)
+    "gpt-5.4",         # Current standard flagship
+    "gpt-5.4-mini",    # High-speed reasoning for agents
+    "gpt-5.4-nano",    # Lightweight reasoning for high-volume tasks
+    "gpt-5.2",         # Previous flagship with adaptive reasoning
+    "gpt-5.1",         # First iteration of the unified GPT-5 reasoning line
+    
+    # Specialized Reasoning Models (o-Series)
+    "o4-mini",         # April 2025: Efficient reasoning successor to o3-mini
+    "o3-pro",          # June 2025: Advanced scientific/coding reasoning
+    "o3",              # April 2025: Frontier reasoning model
+    "o3-mini",         # January 2025: High-speed technical reasoning
+    
+    # Legacy Reasoning Models
+    "o1-pro",          # March 2025: The "expensive" frontier reasoning model
+    "o1",              # December 2024: First full reasoning model
+    "o1-mini",         # Compact reasoning for coding/STEM
+    "o1-preview"       # Initial public preview of reasoning capabilities
+    ]
+
+    RES, TEMP = (temp, None) if mod in openai_reasoning_models else (None, temp)
+
     question2 = client.chat.completions.create(
-        temperature=temp,
+        temperature=TEMP,
         model=mod,
+        reasoning_effort=RES,
         response_format=response_format_entry,
         messages=[
                 {
@@ -541,19 +568,5 @@ def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
     )
     response2 = question2.choices[0].message.content
     return response2
-
-def ask_prompt_reasoning (system_prompt, prompt, effort, mod): 
-    client = OpenAI()
-    response = client.responses.create(
-        model=mod,
-        input=[
-            {"role": "developer", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        reasoning={
-            "effort": effort 
-        }
-    )
-    return response.output_text
 #endregion
 ########################################################################################################################
