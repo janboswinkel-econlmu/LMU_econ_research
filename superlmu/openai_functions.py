@@ -546,26 +546,24 @@ def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
     "o1-preview"       # Initial public preview of reasoning capabilities
     ]
 
-    RES, TEMP = (temp, None) if mod in openai_reasoning_models else (None, temp)
+    kwargs = {
+    "model": mod,
+    "response_format": response_format_entry,
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {
+            "role": "user",
+            "content": [{"type": "text", "text": prompt}],
+        },
+        ],
+    }
 
-    question2 = client.chat.completions.create(
-        temperature=TEMP,
-        model=mod,
-        reasoning_effort=RES,
-        response_format=response_format_entry,
-        messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt}
-                    ],
-                }
-        ]
-    )
+    if mod in openai_reasoning_models:
+        kwargs["reasoning_effort"] = temp
+    else:
+        kwargs["temperature"] = temp
+
+    question2 = client.chat.completions.create(**kwargs)
     response2 = question2.choices[0].message.content
     return response2
 #endregion
