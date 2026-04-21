@@ -15,8 +15,13 @@ setup(
         "roboflow",
         "ultralytics",
         "matplotlib",
-         "pypdf",
-        "pdf2image"
+        "pypdf",
+        "pdf2image",
+        "scipy",
+        "fuzzywuzzy",
+        "joblib",
+        "scikit-learn",
+        "hdbscan"
     ],
     python_requires='>=3.6',
 )
