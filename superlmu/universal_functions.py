@@ -24,41 +24,69 @@ from pdf2image import convert_from_path
 #endregion
 ########################################################################################################################
 
-#region data statistics
+def data_summ(data, col_indices, col_names, n_workers):
+    def subfunc(data, col_idx, col_name):
+        summary=summ(data[:,col_idx], col_name)
+        row=[col_name]
+        for cat in ['n', 'n_isna', 'data_type', 'mean', 'median', 'min', 'max', 'std_dev','n_uniques', 'most_common']:
+            try:
+                value= summary[cat]
+                row.append(value)
+            except:
+                row.append(np.nan)
+        return np.array([row], dtype=object)
+    rows=Parallel(n_jobs=n_workers)(delayed(subfunc)(data, col_idx, col_name) for col_idx, col_name in zip(col_indices, col_names))
+    return np.vstack(rows)
+
 def summ(col, name_var='variable'):
     nas_count, total_count=len(np.where(pd.isna(col))[0]), len(col)
     variable_data = col[~pd.isna(col)]
     data_type = {type(item) for item in variable_data}
-    if len(data_type)>1:
-        summary={
-            'variable': name_var,
+    base_print={'variable': name_var,
                 'n': total_count,
-                 'n_isna': nas_count,
-                 'data_type': 'mixed'}
+                 'n_isna': nas_count}
+    if len(data_type)>1:
+        #find str idx
+        str_idx=[idx for idx in range(len(variable_data)) if isinstance(variable_data[idx], str)]
+        num_idx=[idx for idx in range(len(variable_data)) if isinstance(variable_data[idx], (int, float))]
+        others=np.setdiff1d(np.arange(len(variable_data)), str_idx+num_idx)
+        if len(str_idx)>0:
+            str_values=variable_data[str_idx]
+            n_str=len(str_values)
+            unique_values, counts = np.unique(str_values, return_counts=True)
+            most_common = unique_values[np.argsort(counts)[-5:]]
+        else:
+            n_str, unique_values, counts, most_common, = 0, np.nan, np.nan, np.nan
+        if len(num_idx)>0:
+            num_values=variable_data[num_idx]
+            n_num=len(num_values)
+            mean, median, min_val, max_val, std_dev=np.mean(num_values), np.median(num_values), np.min(num_values), np.max(num_values), np.std(num_values)
+        else:
+            n_num, mean, median, min_val, max_val, std_dev=0, np.nan, np.nan, np.nan, np.nan, np.nan
+        summary={**base_print,'data_type': f'mixed, {n_str} string, {n_num} numeric, {len(others)} other',
+                'n_uniques': len(unique_values) if len(str_idx)>0 else np.nan,
+                 'most_common': most_common if len(str_idx)>0 else np.nan,
+                 'mean': mean if len(num_idx)>0 else np.nan,
+                 'median': median if len(num_idx)>0 else np.nan,
+                 'min': min_val if len(num_idx)>0 else np.nan,
+                 'max': max_val if len(num_idx)>0 else np.nan,
+                 'std_dev': std_dev if len(num_idx)>0 else np.nan
+                }  
         return(summary)
     if len(data_type)==0:
-        summary={
-            'variable': name_var,
-                'n': total_count,
-                 'n_isna': nas_count,
-                 'data_type': 'no data type'}
+        summary={**base_print,'data_type': 'no data type'}
         return(summary)
     #if is string, get number of unique values and print 5 most popular
     if str in data_type:
         unique_values, counts = np.unique(variable_data, return_counts=True)
         most_common = unique_values[np.argsort(counts)[-5:]]
-        summary={
-            'variable': name_var,
-                'n': total_count,
-                 'n_isna': nas_count,
+        summary={**base_print,
                  'data_type': 'string',
                  'n_uniques': len(unique_values),
                  'most_common': most_common}
+        return(summary)
     elif all(np.issubdtype(type(item), np.number) for item in variable_data):
-        summary = {
-            'variable': name_var,
-            'n': total_count,
-            'n_isna': nas_count,
+        summary = {**base_print,
             'data_type': 'numeric (float or int)',
             'mean': np.mean(variable_data),
             'median': np.median(variable_data),
@@ -66,36 +94,17 @@ def summ(col, name_var='variable'):
             'max': np.max(variable_data),
             'std_dev': np.std(variable_data)
         }
+        return(summary)
     elif any(t in data_type for t in (list, tuple, np.ndarray)):
         as_tuples = np.array([tuple(lst) for lst in variable_data], dtype=object)
         as_tuples_str = np.array([tuple(str(x) for x in tup) for tup in as_tuples], dtype=object) # Convert all elements in tuples to strings to avoid comparison errors
         unique_values, counts = np.unique(as_tuples_str, return_counts=True)
         most_common = unique_values[np.argsort(counts)[-5:]]
-        summary = {
-            'variable': name_var,
-            'n': total_count,
-            'n_isna': nas_count,
+        summary = {**base_print,
             'data_type': 'list (list, tuple or array)',
             'n_uniques': len(unique_values),
             'example': most_common}
-    return(summary)
-    # summary = {
-    #     'data_type': data_type,
-    #     'total_count':total_count,
-    #     'NAs_count': nas_count,
-    #     "mean": np.mean(variable_data),
-    #     "median": np.median(variable_data),
-    #     "min": np.min(variable_data),
-    #     "max": np.max(variable_data),
-    #     "percentiles": {
-    #         "10th": np.percentile(variable_data, 10),
-    #         "25th": np.percentile(variable_data, 25),
-    #         "50th": np.percentile(variable_data, 50),
-    #         "75th": np.percentile(variable_data, 75),
-    #         "90th": np.percentile(variable_data, 90),
-    #     },
-    # }
-    # return summary
+        return(summary)
 
 #endregion
 ########################################################################################################################
