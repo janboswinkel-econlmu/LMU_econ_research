@@ -211,10 +211,7 @@ def submit_json_file_openai(client, batch_file):
 
 def submit_batch_job(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None, json_schema=None):
     if file_type=='text':
-        if mod in ['gpt-5', "gpt-5-mini", "gpt-5-nano"]:
-            make_json_format_reasoning(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
-        else:
-            make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, json_schema)
+        make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, json_schema)
     elif file_type=='pdf':
         make_json_format_pdf(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
     elif file_type=='image':
