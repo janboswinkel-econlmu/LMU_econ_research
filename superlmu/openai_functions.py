@@ -254,11 +254,14 @@ def read_results(path_to_openai_logs, batch_job_id):
         for line in file:
             json_object = json.loads(line.strip())
             results.append(json_object)
-    rows=np.empty((0,2),dtype=object)
+    rows=np.empty((0,4),dtype=object)
     for res in results:
         task_id_string= res['custom_id']
         string_result=res['response']['body']['choices'][0]['message']['content']
-        row=np.array([task_id_string, string_result],dtype=object)
+        usage = res["response"]["body"].get("usage", {})
+        input_tokens = usage.get("prompt_tokens", 0)
+        output_tokens = usage.get("completion_tokens", 0)
+        row=np.array([task_id_string, string_result, input_tokens, output_tokens],dtype=object)
         rows=np.vstack((rows, row))
     return(rows) 
 
@@ -339,7 +342,7 @@ def create_subfolders(base_path):
 
 #region functions to submit and extract requests
 
-def submit_requests(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
+def submit_requests(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None, json_schema=None):
     
     #ensures path_to_openai_logs exists and has required subfolders (find_batch_ids, complete_jobs, deletable)
     create_subfolders(path_to_openai_logs)
@@ -361,7 +364,7 @@ def submit_requests(path_to_openai_logs, prompt_array, system_prompt, temp, mod,
     #submit each request separately and store batch_ids   
     batch_job_ids=[]
     for request in requests:
-        batch_job_id= submit_batch_job(path_to_openai_logs, request, system_prompt, temp, mod, name_batch, file_type, image_detail)
+        batch_job_id= submit_batch_job(path_to_openai_logs, request, system_prompt, temp, mod, name_batch, file_type, image_detail, json_schema)
         batch_job_ids.append(batch_job_id)
     
     #save batch_job_ids
