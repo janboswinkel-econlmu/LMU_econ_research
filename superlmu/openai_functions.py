@@ -41,32 +41,66 @@ def make_json_format_reasoning(path_to_openai_logs, prompt_array, system_prompt,
         for obj in tasks:
             file.write(json.dumps(obj) + '\n')
 
-def make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch):
+
+def make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, json_schema=None):
     #prompt_array contains 2 cols, one for index and one for string, name_batch is file name for json file
+    
+    if json_schema is None:
+        response_format_entry={"type": "json_object"}
+    else:
+        response_format_entry={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "schema_provided",
+                "schema": json_schema.model_json_schema(),
+                "strict": True
+            }}
+    openai_reasoning_models = [
+        # Current Flagship Models (Unified Reasoning)
+        "gpt-5.4-pro",     # Released March 2026: Highest reasoning depth (xhigh effort)
+        "gpt-5.4",         # Current standard flagship
+        "gpt-5.4-mini",    # High-speed reasoning for agents
+        "gpt-5.4-nano",    # Lightweight reasoning for high-volume tasks
+        "gpt-5.2",         # Previous flagship with adaptive reasoning
+        "gpt-5.1",         # First iteration of the unified GPT-5 reasoning line
+        
+        # Specialized Reasoning Models (o-Series)
+        "o4-mini",         # April 2025: Efficient reasoning successor to o3-mini
+        "o3-pro",          # June 2025: Advanced scientific/coding reasoning
+        "o3",              # April 2025: Frontier reasoning model
+        "o3-mini",         # January 2025: High-speed technical reasoning
+        
+        # Legacy Reasoning Models
+        "o1-pro",          # March 2025: The "expensive" frontier reasoning model
+        "o1",              # December 2024: First full reasoning model
+        "o1-mini",         # Compact reasoning for coding/STEM
+        "o1-preview"       # Initial public preview of reasoning capabilities
+    ]
+
     tasks=[]
     for i in range(len(prompt_array)):
         idx=prompt_array[i,0]
         string=prompt_array[i,1]
+
         task = {
             "custom_id": f"{idx}",
             "method": "POST",
             "url": "/v1/chat/completions",
             "body": {
                 "model": mod,
-                "temperature": temp,
-                "response_format": { "type": "json_object" }, #!!!default, can comment out if needed
+                "response_format": response_format_entry,
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
+                    {"role": "system", "content": system_prompt},
                     {
                         "role": "user",
-                        "content": string
-                    }
-                ],
-            }
-        }
+                        "content": [{"type": "text", "text": string}],
+                    },
+                    ],
+            }}
+        if mod in openai_reasoning_models:
+            task['body']['reasoning_effort'] = temp
+        else:
+            task['body']['temperature'] = temp
     
         tasks.append(task)
     file_name = f'{path_to_openai_logs}\\deletable\\{name_batch}.jsonl'
@@ -175,12 +209,12 @@ def submit_json_file_openai(client, batch_file):
     )
     return(batch_job)
 
-def submit_batch_job(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None):
+def submit_batch_job(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, file_type=False, image_detail=None, json_schema=None):
     if file_type=='text':
         if mod in ['gpt-5', "gpt-5-mini", "gpt-5-nano"]:
             make_json_format_reasoning(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
         else:
-            make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
+            make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch, json_schema)
     elif file_type=='pdf':
         make_json_format_pdf(path_to_openai_logs, prompt_array, system_prompt, temp, mod, name_batch)
     elif file_type=='image':
@@ -510,8 +544,7 @@ def ask_multi_image(sources, system_prompt, prompt, temp, mod):
     response = question1.choices[0].message.content
     return response
 
-
-def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
+def ask_prompt (system_prompt, prompt, temp, mod, json_schema, return_tokens=False): #response=
     client = OpenAI()
     if json_schema is None:
         response_format_entry={"type": "json_object"}
@@ -565,6 +598,14 @@ def ask_prompt (system_prompt, prompt, temp, mod, json_schema): #response=
 
     question2 = client.chat.completions.create(**kwargs)
     response2 = question2.choices[0].message.content
+
+    if return_tokens:
+        input_tokens     = question2.usage.prompt_tokens
+        output_tokens    = question2.usage.completion_tokens
+        reasoning_tokens = getattr(question2.usage.completion_tokens_details, 'reasoning_tokens', 0)
+        total_tokens     = question2.usage.total_tokens
+        return response2, (input_tokens, output_tokens)
+
     return response2
 #endregion
 ########################################################################################################################
