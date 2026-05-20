@@ -553,7 +553,7 @@ def ask_prompt (system_prompt, prompt, temp, mod, json_schema, return_tokens=Fal
             "type": "json_schema",
             "json_schema": {
                 "name": "schema_provided",
-                "schema": json_schema.model_json_schema(),
+                "schema": json_schema,
                 "strict": True
             }}
         
