@@ -354,14 +354,15 @@ def convert_cols_to_type(array, cols, ctype):
     return array
 
 #split dataset into chunks based on unique values in a specific column
-def split_data_into_chunks(data, col):
+def split_data_into_chunks(data, col, verbosity=True):
     """
     Splits data into chunks based on unique values in a specified column.
     """
     na_idx=np.where(pd.isna(data[:, col]))[0]
     non_na_idx=np.setdiff1d(np.arange(len(data)), na_idx)
     na_chunk=data[na_idx, :]
-    print(f"Number of rows with NA in column {col}: {len(na_idx)}, a separate chunk was made with these values")
+    if verbosity:
+        print(f"Number of rows with NA in column {col}: {len(na_idx)}, a separate chunk was made with these values")
     
     non_nan_data=data[non_na_idx, :]
     non_nan_data=non_nan_data[np.argsort(non_nan_data[:, col]),:]  #sort non_nan_data by column to ensure correct order
