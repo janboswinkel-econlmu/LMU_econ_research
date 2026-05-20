@@ -205,6 +205,39 @@ def uniques_no_nas(array):
     print(f"Number of NAs: {len(na_idx)} out of {len(array)}")
     return unique
 
+def unique_id(data, col):
+    """
+    Returns data with added id column based on uniques of col and mapping of ids
+    """
+    na_idx=np.where(pd.isna(data[:, col]))[0]
+    non_na_idx=np.setdiff1d(np.arange(len(data)), na_idx)
+    na_chunk=data[na_idx, :]
+    non_nan_data=data[non_na_idx, :]
+    non_nan_data=non_nan_data[np.argsort(non_nan_data[:, col]),:]  #sort non_nan_data by column to ensure correct order
+    uniques, indices=np.unique(non_nan_data[:, col], return_index=True)
+    pre_idx=0
+    na_chunk=add_col(na_chunk, np.nan, 1)
+    non_nan_data=add_col(non_nan_data, np.nan, 1)
+    if len(indices)==1:
+        z=1
+        non_nan_data[:,-1]=z
+        uniques=add_col(uniques, 1,1,0)
+    else:
+        uniques=add_col(uniques, np.arange(1, len(indices)+1),1,0)
+        for z in range(1,len(indices)):
+            idx = indices[z]
+            non_nan_data[pre_idx:idx, -1]=z
+            pre_idx = idx
+        #add last chunk
+        non_nan_data[pre_idx:, -1]=z+1
+    if len(na_idx)>0:
+        print(f"Number of rows with NA in column {col}: {len(na_idx)}, a separate id -1 was assigned to these values")
+        na_chunk[:, -1]=-1
+        uniques=np.vstack((uniques, np.array([-1, np.nan],dtype=object).reshape(-1,2)))
+        return(np.vstack((non_nan_data, na_chunk)), uniques)
+    else:
+        return non_nan_data, uniques
+
 #merge matrices using pd DataFrame and converting back to numpy
 def numpy_merge(a, b, col_ids, method, delete_key=False):
     df_a=pd.DataFrame(a)
