@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
-
 setup(
-    name="superlmu", 
+    name="superlmu",
     version="0.1.0",
     description="A python package for LMU Econ Research on historical documents",
     packages=find_packages(),
@@ -21,7 +20,10 @@ setup(
         "fuzzywuzzy",
         "joblib",
         "scikit-learn",
-        "hdbscan"
+        "hdbscan",
+        "google-genai",
+        "google-cloud-storage",
+        "google-auth",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.8",
 )
