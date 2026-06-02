@@ -4,89 +4,82 @@ import os
 import math
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-from fuzzywuzzy import fuzz
 from joblib import Parallel, delayed
 from sklearn.cluster import AgglomerativeClustering
 import hdbscan
 from openai import OpenAI
 
+from scipy.spatial.distance import pdist, squareform
+from scipy.sparse import coo_matrix
+import gc
+from rapidfuzz import fuzz as fuzzy
+
 #endregion
 
 #region make distance matrix
 
-def fuzzy_scores(rows_indices, row_names, col_names, matrix):
+def make_zigzag_list(items):
+    listzig,i=[],0
+    numitems=len(items)
+    min, max=0, numitems-1
+    while min<max:
+        listzig+=[items[min],items[max]]
+        i+=1
+        min,max=i, numitems-1-i
+    return listzig
+
+def fuzzy_scores(row_names, indices):
     results=[]
-    for row_idx in rows_indices:
-        item=row_names[row_idx]
-        restofrow_indices=np.where(matrix[row_idx,:] == 0)[0]
-        restofrow_names = [col_names[i] for i in restofrow_indices]
-        fuzzy_scores=[fuzz.WRatio(item, other_item) for other_item in restofrow_names]
-        result=np.array([row_idx, restofrow_indices, fuzzy_scores], dtype=object)
-        results.append(result)
+    for i in indices:
+        for j in range(i+1, len(row_names)):
+            results.append((i, j, float(fuzzy.WRatio(row_names[i], row_names[j])))) #0.00015 s per pair
+        # result=np.hstack((np.array([i]*len(fuzzylist)).reshape(-1,1), np.arange(i+1, len(row_names)).reshape(-1,1), np.array(fuzzylist, dtype=float).reshape(-1,1))).reshape(-1,3).astype(object)
+        # results.append(result)
     return(np.vstack(results))
 
+def bestfuzz(lista,listb):
+    best = 0
+    for a in lista:
+        for b in listb:
+            s = fuzzy.WRatio(a, b)
+            if s > best:
+                best = s
+                if best == 100:
+                    return 100
+    return best
 
-def multi_fuzzy_scores(rows_indices, row_lists, col_lists, matrix):
-    """
-    Calculates max fuzzy score for i, j in matrix where i, j are lists of strings
-    """
-    def max_fuzzy_score_2_lists(list1, list2):
-        return max([fuzz.WRatio(item1, item2) for item1 in list1 for item2 in list2])
+def multi_fuzzy_scores(row_lists, indices):
     results=[]
-    for row_idx in rows_indices:
-        list1=row_lists[row_idx]
-        restofrow_indices=np.where(matrix[row_idx,:] == 0)[0]
-        restofrow_lists = [col_lists[i] for i in restofrow_indices]
-        fuzzy_scores=[max_fuzzy_score_2_lists(list1, list2) for list2 in restofrow_lists]
-        result=np.array([row_idx, restofrow_indices, fuzzy_scores], dtype=object)
-        results.append(result)
-    return(np.vstack(results))
+    row_sets = [set(row) for row in row_lists]
+    for i in indices:
+        for j in range(i+1, len(row_sets)):
+            if row_sets[i] & row_sets[j]:
+                results.append((i, j, float(100)))
+            else:
+                fuzzyscore=bestfuzz(row_sets[i], row_sets[j])
+                results.append((i, j, float(fuzzyscore)))
+    return(np.array(results, dtype=object))
 
-def zigzag_batches(list_array, breaks):
-    increasing=list_array[np.argsort(list_array)]
-    decreasing=list_array[np.argsort(list_array)][::-1]
-    batch_size = math.ceil(len(list_array) / breaks)
-    batches=[]
-    for i in range(0, len(list_array), batch_size):#0,5,10,15,20...
-        top= min(i + batch_size, len(list_array)) 
-        internal_idx=range(i,top) #0,1,2,3,4 or 61,62,63,64,65...
-        even_internal_idx= internal_idx[::2]  #0,2,4
-        odd_internal_idx= internal_idx[1::2]  #1,3
-        batch=increasing[even_internal_idx].tolist()+decreasing[odd_internal_idx].tolist()
-        batches.append(batch)
-    return batches
+def fuzzy_scores_save(prefix, row_names, indices, path):
+    subbatches=split_into_batches(indices,10,'n_batches')
+    for z, batch in enumerate(subbatches):
+        results=[]
+        for i in batch:
+            fuzzylist=[fuzz.WRatio(row_names[i], row_names[j]) for j in range(i+1, len(row_names))] #0.00015 s per pair
+            result=np.hstack((np.array([i]*len(fuzzylist)).reshape(-1,1), np.arange(i+1, len(row_names)).reshape(-1,1), np.array(fuzzylist, dtype=float).reshape(-1,1))).reshape(-1,3).astype(object)
+            results.append(result)
+        save_file(np.vstack(results), path, f'{prefix}_{z}')
+        del results
+        gc.collect()
 
-def parallel_fuzzy_scores(row_names, col_names, matrix, n_workers, multi):
-    row_indices= np.arange(len(matrix))
-    batches=zigzag_batches(row_indices, n_workers)
-    if multi:
-        results=Parallel(n_jobs=n_workers)(delayed(multi_fuzzy_scores)(batch, row_names, col_names, matrix) for batch in batches)
-    else:
-        results=Parallel(n_jobs=n_workers)(delayed(fuzzy_scores)(batch, row_names, col_names, matrix) for batch in batches)
-    return(np.vstack(results))
-
-def make_distance_matrix(row_names, col_names, n_workers, multi=False, filter=None): #if multi, col_names and row_names are list of lists
-    #if filter, use it as matrix else make new matrix with 0s in upper diagonal
-    if filter is not None:
-        matrix=filter
-    else:
-        matrix = np.full((len(row_names), len(col_names)), 0, dtype=float)
-        np.fill_diagonal(matrix, 100)  # fill diagonal with 100
-        matrix[np.tril_indices_from(matrix, k=-1)] = 100 #values below diag are 100
-        
-    #parallel operations
-    results= parallel_fuzzy_scores(row_names, col_names, matrix, n_workers, multi)
-    for result in results:
-        row_idx, col_indices, fuzzy_scores = result
-        matrix[row_idx, col_indices] = fuzzy_scores  #fill in the scores for the row
-        
-    #copy one side of diagonal into other side and convert into distances (1-x/100)
-    matrix[np.tril_indices_from(matrix, k=0)] = 0  #set diagonal and everything below it to 0
-    matrix = matrix + matrix.T
-    np.fill_diagonal(matrix, 100)  # fill diagonal with 100
-    matrix = 1 - matrix/100
-    sim_matrix=1- matrix
-    return matrix, sim_matrix
+def populate_matrix(fuzzy_scores, n_rows):
+    rows, cols, data = zip(*fuzzy_scores)
+    matrix=coo_matrix((data, (rows, cols)), shape=(n_rows, n_rows)).tocsr()
+    matrix=matrix + matrix.T
+    matrix.setdiag(100)
+    matrix = matrix.toarray()
+    matrix = 1.0 - matrix / 100.0
+    return matrix
 
 #endregion
 
