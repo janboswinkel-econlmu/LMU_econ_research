@@ -52,7 +52,7 @@ def make_json_format(path_to_openai_logs, prompt_array, system_prompt, temp, mod
             "type": "json_schema",
             "json_schema": {
                 "name": "schema_provided",
-                "schema": json_schema.model_json_schema(),
+                "schema": json_schema,
                 "strict": True
             }}
     openai_reasoning_models = [
