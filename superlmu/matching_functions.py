@@ -76,16 +76,12 @@ def multi_fuzzy_scores(row_lists, indices, mode):
                 results.append((i, j, float(fuzzyscore)))
     return(np.array(results, dtype=object))
 
-def fuzzy_scores_save(prefix, row_names, indices, path):
+def fuzzy_scores_save(prefix, row_names, indices, mode, path):
     subbatches=split_into_batches(indices,10,'n_batches')
     for z, batch in enumerate(subbatches):
-        results=[]
-        for i in batch:
-            fuzzylist=[fuzz.WRatio(row_names[i], row_names[j]) for j in range(i+1, len(row_names))] #0.00015 s per pair
-            result=np.hstack((np.array([i]*len(fuzzylist)).reshape(-1,1), np.arange(i+1, len(row_names)).reshape(-1,1), np.array(fuzzylist, dtype=float).reshape(-1,1))).reshape(-1,3).astype(object)
-            results.append(result)
-        save_file(np.vstack(results), path, f'{prefix}_{z}')
-        del results
+        scores=fuzzy_scores(row_names, batch, mode)
+        save_file(scores, path, f'{prefix}_{z}')
+        del scores
         gc.collect()
 
 def populate_matrix(fuzzy_scores, n_rows):
