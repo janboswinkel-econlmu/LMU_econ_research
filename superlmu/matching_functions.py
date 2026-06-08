@@ -29,7 +29,7 @@ def make_zigzag_list(items):
     return listzig
 
 def fuzzy_scores(row_names, indices, mode):
-    if mode not in ['wratio', 'tokenset']
+    if mode not in ['wratio', 'tokenset']:
         raise ValueError("Invalid mode. Choose 'wratio' or 'token_set'")
     results=[]
     if mode == 'wratio':
@@ -43,8 +43,6 @@ def fuzzy_scores(row_names, indices, mode):
     return(np.vstack(results))
 
 def bestfuzz(lista,listb,mode):
-    if mode not in ['wratio', 'tokenset']
-        raise ValueError("Invalid mode. Choose 'wratio' or 'token_set'")
     best = 0
     if mode == 'wratio':
         for a in lista:
@@ -65,6 +63,8 @@ def bestfuzz(lista,listb,mode):
     return best
 
 def multi_fuzzy_scores(row_lists, indices, mode):
+    if mode not in ['wratio', 'tokenset']:
+        raise ValueError("Invalid mode. Choose 'wratio' or 'token_set'")
     results=[]
     row_sets = [set(row) for row in row_lists]
     for i in indices:
