@@ -13,7 +13,7 @@ from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import coo_matrix
 import gc
 from rapidfuzz import fuzz as fuzzy
-
+from .universal_functions import get_all_filenames, save_file, open_file, split_into_batches
 #endregion
 
 #region make distance matrix
