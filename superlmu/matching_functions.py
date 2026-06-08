@@ -28,27 +28,43 @@ def make_zigzag_list(items):
         min,max=i, numitems-1-i
     return listzig
 
-def fuzzy_scores(row_names, indices):
+def fuzzy_scores(row_names, indices, mode):
+    if mode not in ['wratio', 'tokenset']
+        raise ValueError("Invalid mode. Choose 'wratio' or 'token_set'")
     results=[]
-    for i in indices:
-        for j in range(i+1, len(row_names)):
-            results.append((i, j, float(fuzzy.WRatio(row_names[i], row_names[j])))) #0.00015 s per pair
-        # result=np.hstack((np.array([i]*len(fuzzylist)).reshape(-1,1), np.arange(i+1, len(row_names)).reshape(-1,1), np.array(fuzzylist, dtype=float).reshape(-1,1))).reshape(-1,3).astype(object)
-        # results.append(result)
+    if mode == 'wratio':
+        for i in indices:
+            for j in range(i+1, len(row_names)):
+                results.append((i, j, float(fuzzy.WRatio(row_names[i], row_names[j]))))
+    else:
+        for i in indices:
+            for j in range(i+1, len(row_names)):
+                results.append((i, j, float(fuzzy.token_set_ratio(row_names[i], row_names[j]))))
     return(np.vstack(results))
 
-def bestfuzz(lista,listb):
+def bestfuzz(lista,listb,mode):
+    if mode not in ['wratio', 'tokenset']
+        raise ValueError("Invalid mode. Choose 'wratio' or 'token_set'")
     best = 0
-    for a in lista:
-        for b in listb:
-            s = fuzzy.WRatio(a, b)
-            if s > best:
-                best = s
-                if best == 100:
-                    return 100
+    if mode == 'wratio':
+        for a in lista:
+            for b in listb:
+                s = fuzzy.WRatio(a, b)
+                if s > best:
+                    best = s
+                    if best == 100:
+                        return 100
+    else:
+        for a in lista:
+            for b in listb:
+                s = fuzzy.token_set_ratio(a, b)
+                if s > best:
+                    best = s
+                    if best == 100:
+                        return 100
     return best
 
-def multi_fuzzy_scores(row_lists, indices):
+def multi_fuzzy_scores(row_lists, indices, mode):
     results=[]
     row_sets = [set(row) for row in row_lists]
     for i in indices:
@@ -56,7 +72,7 @@ def multi_fuzzy_scores(row_lists, indices):
             if row_sets[i] & row_sets[j]:
                 results.append((i, j, float(100)))
             else:
-                fuzzyscore=bestfuzz(row_sets[i], row_sets[j])
+                fuzzyscore=bestfuzz(row_sets[i], row_sets[j], mode)
                 results.append((i, j, float(fuzzyscore)))
     return(np.array(results, dtype=object))
 
