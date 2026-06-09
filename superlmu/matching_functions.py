@@ -84,13 +84,25 @@ def fuzzy_scores_save(prefix, row_names, indices, mode, path):
         del scores
         gc.collect()
 
-def populate_matrix(fuzzy_scores, n_rows):
-    rows, cols, data = zip(*fuzzy_scores)
-    matrix=coo_matrix((data, (rows, cols)), shape=(n_rows, n_rows)).tocsr()
-    matrix=matrix + matrix.T
-    matrix.setdiag(100)
-    matrix = matrix.toarray()
-    matrix = 1.0 - matrix / 100.0
+def populate_matrix(allfuzzy, n_rows):
+    rows = allfuzzy[:, 0].astype(np.int32)
+    cols = allfuzzy[:, 1].astype(np.int32)
+    data = allfuzzy[:, 2].astype(np.float32)
+    
+    # 2. Create the symmetric matrix
+    matrix = coo_matrix((data, (rows, cols)), shape=(n_rows, n_rows)).tocsr()
+    
+    # Allow the garbage collector to free the initial arrays before addition
+    del rows, cols, data 
+    gc.collect()
+
+    matrix = matrix + matrix.T #long step, dependds on cpu speed
+    
+    matrix.data /= np.float32(100.0)
+    matrix.data *= np.float32(-1.0)
+    matrix.data += np.float32(1.0)
+    
+    matrix.setdiag(np.float32(1.0)) 
     return matrix
 
 #endregion
