@@ -24,6 +24,7 @@ setup(
         "google-cloud-storage",
         "google-auth",
         "rapidfuzz",
+        "networkx"
     ],
     python_requires=">=3.8",
 )
