@@ -14,10 +14,21 @@ from scipy.sparse import coo_matrix
 import gc
 from rapidfuzz import fuzz as fuzzy
 from .universal_functions import get_all_filenames, save_file, open_file, split_into_batches
+import networkx as nx
 #endregion
 
 #region make distance matrix
-
+def find_clusters_nx(pairs):
+    #idx=np.where(allfuzzy[:,2]>90)[0]
+    #pairs=fuzzy_scores[np.ix_(idx,[0,1])]
+    # Initialize an undirected graph
+    G = nx.Graph()
+    # Add edges from your i, j pairs
+    G.add_edges_from(pairs)
+    # Extract connected components and convert them to lists
+    clusters = [list(cluster) for cluster in nx.connected_components(G)]
+    return clusters
+    
 def make_zigzag_list(items):
     listzig,i=[],0
     numitems=len(items)
