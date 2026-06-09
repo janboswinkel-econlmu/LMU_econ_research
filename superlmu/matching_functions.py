@@ -157,6 +157,24 @@ def run_density(obj, epsilon):
         recursive_max+=1
     return(clusters)
 
+def union_clusters(clusta, clustb):
+    clustc=np.array([np.nan]*len(clusta), dtype=object)
+    z=0
+    for i, itema in enumerate(clusta):
+        itemb=clustb[i]
+        groupa=np.where(clusta==itema)[0]
+        groupb=np.where(clustb==itemb)[0]
+        #union of both
+        union=np.union1d(groupa, groupb)
+        already_in_clustc=np.where(~pd.isna(clustc[union]))[0]
+        if len(already_in_clustc)>0:
+            existing_item=clustc[union[already_in_clustc][0]]
+            clustc[union]=existing_item
+        else:
+            clustc[union]=z
+            z+=1
+    return clustc
+
 #endregion
 
 #region openai embeddings
